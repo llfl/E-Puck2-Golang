@@ -10,16 +10,16 @@ import (
 /***************常量*****************/
 
 // I2CDevices I2C设备
-const I2CDevices string = "/dev/i2c-1"
+const I2CDevices string = "/dev/i2c-4"
 
 // I2CAddress I2C设备的地址
 const I2CAddress = 0x39
 
 // ActuatorSize 定义控制器的长度
-const ActuatorSize int = 19
+const ActuatorSize int = (19 + 1)
 
 /***************变量*****************/
-var actuator = []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+var actuator = []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 /**************主函数*****************/
 
