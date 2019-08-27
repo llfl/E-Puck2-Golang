@@ -2,7 +2,8 @@ package main
 
 import (
 	"golang.org/x/exp/io/i2c"
-	//"bytes"
+	// "bytes"
+	// "binary"
 	"fmt"
 )
 
@@ -119,12 +120,13 @@ func main() {
 			}
 		}
 		var checksum uint8
+		actuator[ActuatorSize-1] = 0
 		for i := 0; i < (ActuatorSize - 1); i++ {
 			checksum ^= actuator[i]
 		}
 		actuator[ActuatorSize-1] = checksum
 		device.Write(actuator)
-		fmt.Println("actuaor updated!")
+		fmt.Println("actuator updated!")
 	}
 
 }

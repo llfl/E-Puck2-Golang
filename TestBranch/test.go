@@ -1,9 +1,11 @@
 package main
 
-import(
+import (
 	"fmt"
 )
 
-func main()  {
-	fmt.Printf("hello raspberry pi")
+func main() {
+	for i := 0; i < (18); i++ {
+		fmt.Printf("%d\n", i)
+	}
 }
