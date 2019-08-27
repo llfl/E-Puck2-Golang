@@ -124,9 +124,10 @@ func main() {
 				fmt.Printf("checksum: %d\n", checksum)
 			}
 			actuator[ActuatorSize-1] = checksum
+			device.Write(actuator)
+			fmt.Println("actuator updated!")
 		}
-		device.Write(actuator)
-		fmt.Println("actuator updated!")
+
 	}
 
 }
