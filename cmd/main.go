@@ -19,7 +19,7 @@ const I2CAddress = 0x39
 const ActuatorSize int = 19
 
 /***************变量*****************/
-var actuator []uint8
+var actuator = []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 /**************主函数*****************/
 
