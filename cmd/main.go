@@ -118,13 +118,13 @@ func main() {
 				actuator[18] = 0   // Settings.
 				actuatorState = 0
 			}
+			var checksum uint8
+			for i := 0; i < (ActuatorSize - 1); i++ {
+				checksum ^= actuator[i]
+				fmt.Printf("checksum: %d\n", checksum)
+			}
+			actuator[ActuatorSize-1] = checksum
 		}
-		var checksum uint8
-		for i := 0; i < (ActuatorSize - 1); i++ {
-			checksum ^= actuator[i]
-			fmt.Printf("checksum: %d\n", checksum)
-		}
-		actuator[ActuatorSize-1] = checksum
 		device.Write(actuator)
 		fmt.Println("actuator updated!")
 	}
