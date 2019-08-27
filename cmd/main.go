@@ -19,7 +19,7 @@ const I2CAddress = 0x39
 const ActuatorSize int = 19
 
 /***************变量*****************/
-var actuator []byte
+var actuator []uint8
 
 /**************主函数*****************/
 
@@ -120,11 +120,11 @@ func main() {
 			}
 		}
 		var checksum uint8
-		actuator[18] = 0
 		for i := 0; i < (ActuatorSize - 1); i++ {
 			checksum ^= actuator[i]
+			fmt.Printf("checksum: %d\n", checksum)
 		}
-		actuator[18] = checksum
+		actuator[ActuatorSize-1] = checksum
 		device.Write(actuator)
 		fmt.Println("actuator updated!")
 	}
