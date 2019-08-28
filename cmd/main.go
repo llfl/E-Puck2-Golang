@@ -31,8 +31,9 @@ func main() {
 		panic(err)
 	}
 	for true {
-		counter = (counter + 1) % 20000
-		if counter == 0 {
+		counter++
+		if counter == 2000 {
+			counter = 0
 			switch actuatorState {
 			case 0:
 				actuator[0] = 0 // Left speed: 512
