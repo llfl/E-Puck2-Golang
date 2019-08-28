@@ -13,7 +13,7 @@ import (
 const I2CDevices string = "/dev/i2c-4"
 
 // I2CAddress I2C设备的地址
-const I2CAddress = 0x39
+const I2CAddress = 0x1F
 
 // ActuatorSize 定义控制器的长度
 const ActuatorSize int = (19 + 1)
