@@ -179,7 +179,7 @@ func sensorDataParser() epuckSensor {
 	epuckData.sel = sensorData[40] & 0x0F
 	epuckData.button = sensorData[40] >> 4
 	for i := 0; i < 2; i++ {
-		epuckData.motorStep[i] = int16(sensorData[41+i*2+1])*256 + int16(sensorData[41+2*i])
+		epuckData.motorStep[i] = int16(uint16(sensorData[41+i*2+1])*256 + uint16(sensorData[41+2*i]))
 	}
 	epuckData.tv = sensorData[45]
 	return epuckData
