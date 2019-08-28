@@ -125,13 +125,20 @@ func main() {
 				checksum ^= actuator[i]
 			}
 			actuator[ActuatorSize-1] = checksum
-			err := device.Write(actuator)
+
+			for trails := 0; trails < 3; trails++ {
+				if err := device.Write(actuator); err != nil {
+					continue
+				}
+				break
+			}
 			if err != nil {
 				panic(err)
 			}
+
 			fmt.Println("actuator updated!")
 		}
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 	}
 
 }
