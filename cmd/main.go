@@ -16,12 +16,30 @@ const I2CDevices string = "/dev/i2c-4"
 // I2CAddress I2C设备的地址
 const I2CAddress = 0x1F
 
-// ActuatorSize 定义控制器的长度
+// ActuatorSize 定义控制器的长度 with checksum
 const ActuatorSize int = (19 + 1)
+
+// SensorDataSize 定义传感器数据的长度 with checksum
+const SensorDataSize int = (46 + 1)
 
 /***************变量*****************/
 
-var actuator = []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+// var actuator = []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+var actuator = make([]byte, ActuatorSize)
+
+var sensorData = make([]byte, SensorDataSize)
+
+/*********epuck传感器结构体************/
+
+type epuckSensor struct {
+	prox      [8]uint16
+	ambient   [8]uint16
+	mic       [4]uint16
+	sel       uint8
+	button    uint8
+	motorStep [2]uint16
+	tv        uint8
+}
 
 /**************主函数*****************/
 
@@ -137,14 +155,32 @@ func main() {
 			}
 
 			fmt.Println("actuator updated!")
+
+			if err := device.Read(sensorData); err != nil {
+				panic(err)
+			}
+			epuckData := sensorDataParser()
+			fmt.Println(epuckData)
 		}
 		time.Sleep(50 * time.Millisecond)
 	}
 
 }
 
-// // Uint8ToByte 讲uint8转换成字节串
-// func Uint8ToByte(n []uint8) []byte {
-// 	bytesBuffer := bytes.NewBuffer([]byte{})
-
-// }
+func sensorDataParser() epuckSensor {
+	var epuckData epuckSensor
+	for i := 0; i < 8; i++ {
+		epuckData.prox[i] = uint16(sensorData[i*2+1])*256 + uint16(sensorData[2*i])
+		epuckData.ambient[i] = uint16(sensorData[16+i*2+1])*256 + uint16(sensorData[16+2*i])
+	}
+	for i := 0; i < 4; i++ {
+		epuckData.mic[i] = uint16(sensorData[32+i*2+1])*256 + uint16(sensorData[32+2*i])
+	}
+	epuckData.sel = sensorData[40] & 0x0F
+	epuckData.button = sensorData[40] >> 4
+	for i := 0; i < 2; i++ {
+		epuckData.motorStep[i] = uint16(sensorData[41+i*2+1])*256 + uint16(sensorData[41+2*i])
+	}
+	epuckData.tv = sensorData[45]
+	return epuckData
+}
