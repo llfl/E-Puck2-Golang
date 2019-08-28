@@ -5,6 +5,7 @@ import (
 	// "bytes"
 	// "binary"
 	"fmt"
+	"time"
 )
 
 /***************常量*****************/
@@ -31,9 +32,8 @@ func main() {
 		panic(err)
 	}
 	for true {
-		counter++
-		if counter == 2000 {
-			counter = 0
+		counter = (counter + 1) % 20
+		if counter == 0 {
 			switch actuatorState {
 			case 0:
 				actuator[0] = 0 // Left speed: 512
@@ -131,7 +131,7 @@ func main() {
 			}
 			fmt.Println("actuator updated!")
 		}
-
+		time.Sleep(500 * time.Millisecond)
 	}
 
 }
