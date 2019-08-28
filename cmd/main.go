@@ -31,7 +31,7 @@ func main() {
 		panic(err)
 	}
 	for true {
-		counter = (counter + 1) % 2000
+		counter = (counter + 1) % 20000
 		if counter == 0 {
 			switch actuatorState {
 			case 0:
