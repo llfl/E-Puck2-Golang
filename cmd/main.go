@@ -29,7 +29,15 @@ var actuator = make([]byte, ActuatorSize)
 
 var sensorData = make([]byte, SensorDataSize)
 
-/*********epuck传感器结构体************/
+/*********epuck结构体************/
+
+type epuckActuator struct {
+	leftMotor  int16
+	rightMotor int16
+	speaker    uint8
+	LED        [8]uint32
+	Settings   uint8
+}
 
 type epuckSensor struct {
 	prox      [8]uint16
@@ -159,7 +167,7 @@ func main() {
 			if err := device.Read(sensorData); err != nil {
 				panic(err)
 			}
-			epuckData := sensorDataParser()
+			epuckData := sensorDataParser(sensorData)
 			fmt.Println(epuckData)
 		}
 		time.Sleep(50 * time.Millisecond)
@@ -167,20 +175,42 @@ func main() {
 
 }
 
-func sensorDataParser() epuckSensor {
+func sensorDataParser(data []byte) epuckSensor {
 	var epuckData epuckSensor
 	for i := 0; i < 8; i++ {
-		epuckData.prox[i] = uint16(sensorData[i*2+1])*256 + uint16(sensorData[2*i])
-		epuckData.ambient[i] = uint16(sensorData[16+i*2+1])*256 + uint16(sensorData[16+2*i])
+		epuckData.prox[i] = uint16(data[i*2+1])*256 + uint16(data[2*i])
+		epuckData.ambient[i] = uint16(data[16+i*2+1])*256 + uint16(data[16+2*i])
 	}
 	for i := 0; i < 4; i++ {
-		epuckData.mic[i] = uint16(sensorData[32+i*2+1])*256 + uint16(sensorData[32+2*i])
+		epuckData.mic[i] = uint16(data[32+i*2+1])*256 + uint16(data[32+2*i])
 	}
-	epuckData.sel = sensorData[40] & 0x0F
-	epuckData.button = sensorData[40] >> 4
+	epuckData.sel = data[40] & 0x0F
+	epuckData.button = data[40] >> 4
 	for i := 0; i < 2; i++ {
-		epuckData.motorStep[i] = int16(uint16(sensorData[41+i*2+1])*256 + uint16(sensorData[41+2*i]))
+		epuckData.motorStep[i] = int16(uint16(data[41+i*2+1])*256 + uint16(data[41+2*i]))
 	}
-	epuckData.tv = sensorData[45]
+	epuckData.tv = data[45]
 	return epuckData
+}
+
+func actuatorDataParser(data epuckActuator) []byte {
+	var actuatorData = make([]byte, ActuatorSize)
+	actuatorData[0] = uint8(data.leftMotor & 0x00FF)
+	actuatorData[1] = uint8(data.leftMotor >> 8)
+	actuatorData[2] = uint8(data.rightMotor & 0x00FF)
+	actuatorData[3] = uint8(data.rightMotor >> 8)
+	actuatorData[4] = data.speaker
+	actuatorData[5] = (uint8(data.LED[0]) << 0) & (uint8(data.LED[2]) << 1) & (uint8(data.LED[4]) << 2) & (uint8(data.LED[6]) << 3)
+	for i := 0; i < 4; i++ {
+		actuatorData[6+3*i] = uint8((data.LED[i*2+1] & 0x00FF0000) >> 16) //red
+		actuatorData[7+3*i] = uint8((data.LED[i*2+1] & 0x0000FF00) >> 8)  //green
+		actuatorData[8+3*i] = uint8((data.LED[i*2+1] & 0x000000FF) >> 0)  //blue
+	}
+	actuatorData[18] = data.Settings
+	var checksum uint8
+	for i := 0; i < 19; i++ {
+		checksum ^= actuator[i]
+	}
+	actuator[19] = checksum
+	return actuatorData
 }
