@@ -104,29 +104,21 @@ func (e *EPuckHandle) Forward(speed int) bool {
 }
 
 //FreeSpin freespin
-func (e *EPuckHandle) FreeSpin(flag bool) bool {
-	var rspeed,lspeed int
-	speed := 64
-	if flag {
-		rspeed = -speed
-		lspeed = speed
-	}else{
-		rspeed = speed
-		lspeed = -speed
-	}
-	return e.FreeForward(lspeed,rspeed)
+func (e *EPuckHandle) FreeSpin(speed int) bool {
+
+	return e.FreeForward(speed,-speed)
 }
 
 //Spin epuck spin around
 func (e *EPuckHandle) Spin(degree float32) bool {
-	var f bool
+	var speed int
 	if degree < 0 {
-		f = LEFT
+		speed = -128
 	}else{
-		f = RIGHT
+		speed = 128
 	}
-	if e.FreeSpin(f){
-		t := time.Duration(degree * RATIO * 3000)
+	if e.FreeSpin(speed){
+		t := time.Duration(degree * RATIO * 1000)
 		time.Sleep(t * time.Millisecond)
 		return e.Stop()
 	}
