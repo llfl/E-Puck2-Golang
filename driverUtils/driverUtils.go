@@ -78,22 +78,42 @@ func (e *EPuckHandle) SendCmd(Actuator []uint8) bool {
 	return false
 }
 
-//Forward go forward 
-func (e *EPuckHandle) Forward(speed int) bool {
-	SL := uint8(speed)
-	SH := uint8(speed>>8)
-	var Actuator = make([]uint8, ActuatorSize)
-	Actuator[0] = SL
-	Actuator[1] = SH
-	Actuator[2] = SL
-	Actuator[3] = SH
-	return e.SendCmd(Actuator)
-}
-
 //Stop epuck stop
 func (e *EPuckHandle) Stop() bool {
 	var Actuator = make([]uint8, ActuatorSize)
 	return e.SendCmd(Actuator)
+}
+
+//FreeForward free forward
+func (e *EPuckHandle) FreeForward(rspeed int, lspeed int) bool {
+	var Actuator = make([]uint8, ActuatorSize)
+	RSL := uint8(rspeed)
+	RSH := uint8(rspeed>>8)
+	LSL := uint8(lspeed)
+	LSH := uint8(lspeed>>8)
+	Actuator[0] = RSL
+	Actuator[1] = RSH
+	Actuator[2] = LSL
+	Actuator[3] = LSH
+	return e.SendCmd(Actuator)
+}
+
+//Forward go forward 
+func (e *EPuckHandle) Forward(speed int) bool {
+	return e.FreeForward(speed,speed)
+}
+
+//FreeSpin freespin
+func (e *EPuckHandle) FreeSpin(flag bool) bool {
+	var rspeed,lspeed int
+	if flag {
+		rspeed = 64
+		lspeed = -64
+	}else{
+		rspeed = -64
+		lspeed = 64
+	}
+	return e.FreeForward(rspeed,lspeed)
 }
 
 //Spin epuck spin around
@@ -112,21 +132,3 @@ func (e *EPuckHandle) Spin(degree float32) bool {
 	return false
 	
 }
-
-//FreeSpin freespin
-func (e *EPuckHandle) FreeSpin(flag bool) bool {
-	var Actuator = make([]uint8, ActuatorSize)
-	if flag {
-		Actuator[0] = 0xC0
-		Actuator[1] = 0xFF
-		Actuator[2] = 0x04
-		Actuator[3] = 0x00
-	}else{
-		Actuator[0] = 0x04
-		Actuator[1] = 0x00
-		Actuator[2] = 0xC0
-		Actuator[3] = 0xFF
-	}
-	return e.SendCmd(Actuator)
-}
-
