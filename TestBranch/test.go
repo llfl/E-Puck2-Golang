@@ -13,7 +13,7 @@ func main()  {
 	for true{
 		switch actuatorState {
 		case 0:
-			epuck.Spin(90)
+			epuck.FreeSpin(100)
 			fmt.Println("ok0")
 			actuatorState = 1
 		case 1:
@@ -21,7 +21,7 @@ func main()  {
 			fmt.Println("ok1")
 			actuatorState = 2
 		case 2:
-			epuck.Spin(-90)
+			epuck.FreeSpin(-100)
 			fmt.Println("ok2")
 			actuatorState = 3
 		case 3:
@@ -30,7 +30,7 @@ func main()  {
 			actuatorState = 0
 		}
 
-		time.Sleep(3 * time.Second)
+		time.Sleep(1 * time.Second)
 	}
 	// fmt.Println("hello world")
 }

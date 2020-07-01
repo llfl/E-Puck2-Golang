@@ -27,7 +27,8 @@ const (
 	// RIGHT flag bit
 	RIGHT = true
 	//RATIO the ratio of spin time to degree
-	RATIO = 0.0120133052
+	RATIO = 12
+	// RATIO = 0.0120133052
 )
 
 // var (
@@ -110,18 +111,16 @@ func (e *EPuckHandle) FreeSpin(speed int) bool {
 }
 
 //Spin epuck spin around
-func (e *EPuckHandle) Spin(degree float32) bool {
+func (e *EPuckHandle) Spin(degree int) bool {
 	var speed int
 	if degree < 0 {
 		speed = -128
 	}else{
 		speed = 128
 	}
-	if e.FreeSpin(speed){
-		t := time.Duration(degree * RATIO * 1000)
-		time.Sleep(t * time.Millisecond)
-		return e.Stop()
-	}
-	return false
+	e.FreeSpin(speed)
+	t := time.Duration(degree * RATIO)
+	time.Sleep(t * time.Millisecond)
+	return e.Stop()
 	
 }
