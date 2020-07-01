@@ -6,6 +6,7 @@ import (
 	// "binary"
 	"fmt"
 	"time"
+	"github.com/imroc/biu"
 )
 
 const (
@@ -69,7 +70,9 @@ func (e *EPuckHandle) SendCmd(Actuator []uint8) bool {
 		if err != nil {
 			continue
 		}
-		fmt.Println("write success!")
+		for i := 0; i < ActuatorSize; i++ {
+			fmt.Println("[",i,"]",biu.ToBinaryString(Actuator[i]))
+		}
 		return true
 	}
 	return false
