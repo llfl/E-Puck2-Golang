@@ -4,6 +4,8 @@ package driverutils
 type Options struct{
 	I2CDevices  string
 	I2CAddress  int
+	GyroAddress int
+	Gyro bool
 }
 
 //Option option func
@@ -24,6 +26,10 @@ func newOptions(opt ...Option) Options {
 		opts.I2CAddress = DefaultI2CAddress
 	}
 
+	if opts.GyroAddress == 0 {
+		opts.GyroAddress = DefaultGyroAddress
+	}
+
 	return opts
 }
 
@@ -38,5 +44,19 @@ func I2CDevice(s string) Option {
 func I2CAddress(s int) Option {
 	return func (o *Options) {
 		o.I2CAddress = s
+	}
+}
+
+//GyroAddress set I2C address
+func GyroAddress(s int) Option {
+	return func (o *Options) {
+		o.GyroAddress = s
+	}
+}
+
+//EnableGyro enable gyro
+func EnableGyro() Option {
+	return func (o *Options) {
+		o.Gyro = true
 	}
 }
