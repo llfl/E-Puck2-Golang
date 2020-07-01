@@ -57,7 +57,8 @@ func NewEPuckHandle(opts ...Option) *EPuckHandle {
 	}
 }
 
-func (e *EPuckHandle) sendCmd(Actuator []uint8) bool {
+//SendCmd send command to epuck
+func (e *EPuckHandle) SendCmd(Actuator []uint8) bool {
 	var checksum uint8
 	for i := 0; i < (ActuatorSize - 1); i++ {
 		checksum ^= Actuator[i]
@@ -74,7 +75,8 @@ func (e *EPuckHandle) sendCmd(Actuator []uint8) bool {
 	return false
 }
 
-func (e *EPuckHandle) forword(speed int) bool {
+//Forward go forward 
+func (e *EPuckHandle) Forward(speed int) bool {
 	SL := uint8(speed)
 	SH := uint8(speed>>8)
 	var Actuator = make([]uint8, ActuatorSize)
@@ -82,31 +84,34 @@ func (e *EPuckHandle) forword(speed int) bool {
 	Actuator[1] = SH
 	Actuator[2] = SL
 	Actuator[3] = SH
-	return e.sendCmd(Actuator)
+	return e.SendCmd(Actuator)
 }
 
-func (e *EPuckHandle) stop() bool {
+//Stop epuck stop
+func (e *EPuckHandle) Stop() bool {
 	var Actuator = make([]uint8, ActuatorSize)
-	return e.sendCmd(Actuator)
+	return e.SendCmd(Actuator)
 }
 
-func (e *EPuckHandle) spin(degree float32) bool {
+//Spin epuck spin around
+func (e *EPuckHandle) Spin(degree float32) bool {
 	var f bool
 	if degree < 0 {
 		f = LEFT
 	}else{
 		f = RIGHT
 	}
-	if e.freespin(f){
+	if e.FreeSpin(f){
 		t := time.Duration(degree * RATIO * 1000)
 		time.Sleep(t * time.Millisecond)
-		return e.stop()
+		return e.Stop()
 	}
 	return false
 	
 }
 
-func (e *EPuckHandle) freespin(flag bool) bool {
+//FreeSpin freespin
+func (e *EPuckHandle) FreeSpin(flag bool) bool {
 	var Actuator = make([]uint8, ActuatorSize)
 	if flag {
 		Actuator[0] = 0xC0
@@ -119,6 +124,6 @@ func (e *EPuckHandle) freespin(flag bool) bool {
 		Actuator[2] = 0xC0
 		Actuator[3] = 0xFF
 	}
-	return e.sendCmd(Actuator)
+	return e.SendCmd(Actuator)
 }
 
