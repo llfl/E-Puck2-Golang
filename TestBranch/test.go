@@ -2,7 +2,7 @@ package main
 
 import(
 	driver "github.com/llfl/E-Puck2-Golang/driverUtils"
-	// "fmt"
+	"fmt"
 	"time"
 )
 
@@ -15,6 +15,7 @@ func main()  {
 	for true{
 		switch actuatorState {
 		case 0:
+			fmt.Println("90")
 			epuck.Spin(90)
 			
 			actuatorState = 1
@@ -23,7 +24,8 @@ func main()  {
 			
 			actuatorState = 2
 		case 2:
-			epuck.FreeSpin(-100)
+			fmt.Println("-90")
+			epuck.Spin(-90)
 			
 			actuatorState = 3
 		case 3:
@@ -33,7 +35,7 @@ func main()  {
 		}
 		// epuck.Stop()
 		// // fmt.Println(res)
-		// epuck.UpdateGyro()
+		epuck.UpdateGyro()
 		// fmt.Println(epuck.Gyro)
 		time.Sleep(1 * time.Second)
 	}

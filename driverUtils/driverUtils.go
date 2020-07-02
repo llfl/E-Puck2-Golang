@@ -38,7 +38,7 @@ const (
 	NumSamplesCalibrationCONST = 20
 
 	//GyroDPSCoefficientCONST 陀螺仪的时间参数
-	GyroDPSCoefficientCONST = 0.0076293945
+	GyroDPSCoefficientCONST = -0.0076293945
 )
 
 // var (
@@ -236,36 +236,33 @@ func (e *EPuckHandle) Spin(degree float32) bool {
 		fmt.Println("GYRO NOT ENABLED: use FreeSpin() instead or enable Gyro!")
 		return false
 	}
-	speed := 512
-	sign := 1
-	var count float32
-	if degree < 0 {
-		sign = -1
-	}
-	if !e.Gyro.calibrated {
-		e.CalibrateGyro()
-	}
+	var gyroCount , lastDeviation, integralDeviation float32
+	count := 0
+	// if !e.Gyro.calibrated {
+	// 	e.CalibrateGyro()
+	// }
+	e.CalibrateGyro()
 	finalPosition := degree / GyroDPSCoefficientCONST * 2
 	fmt.Println("final position:",finalPosition)
 	t := time.NewTicker(500 * time.Millisecond)
 	defer t.Stop()
+	lastDeviation = finalPosition
 	for {
-		e.FreeSpin(sign * speed)
+		deviation := finalPosition - gyroCount
+		integralDeviation += deviation
+		count ++
+		fmt.Println("deviation",deviation)
+		e.FreeSpin(int((-0.967*deviation- 0.017*lastDeviation - 0.016*integralDeviation/float32(count))* 512 / 47187.92 ))
+		fmt.Println(lastDeviation-deviation)
+		lastDeviation = deviation
 		<- t.C
 		if e.UpdateGyro() {
-			count += float32(e.Gyro.Values[2])
+			gyroCount += float32(e.Gyro.Values[2])
 		}
+		// fmt.Println(e.Gyro.Values)
 		// 角度时间系数是250.0/32768.0 dps
-		deviation := (finalPosition - count)/finalPosition
-		fmt.Println("count and dev",count,"and",deviation)
-		switch {
-		case deviation < 0:
-			sign = - sign
-			speed /= 2
-		case deviation<0.1 || speed == 0:
+		if deviation <= 645 && deviation >= -645{
 			return e.Stop()
-		case deviation < 0.5:
-			speed /= 2
 		}
 	}
 }
