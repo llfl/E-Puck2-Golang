@@ -34,7 +34,11 @@ const (
 	RATIO = 12
 	// RATIO = 0.0120133052
 
-	NUM_SAMPLES_CALIBRATION = 20
+	//NumSamplesCalibrationCONST calibrating the gyro
+	NumSamplesCalibrationCONST = 20
+
+	//GyroDPSCoefficientCONST 陀螺仪的时间参数
+	GyroDPSCoefficientCONST = 0.0076293945
 )
 
 // var (
@@ -58,7 +62,8 @@ type ePuckSensors struct{
 
 type ePuckGyro struct{
 	Values [3]int16
-	Offsets [3]int16
+	offsets [3]int16
+	calibrated bool
 }
 
 // EPuckHandle 为EPuck的操作接口
@@ -86,7 +91,7 @@ func NewEPuckHandle(opts ...Option) *EPuckHandle {
 	if options.Gyro {
 		gyro, _ = i2c.Open(&i2c.Devfs{Dev: options.I2CDevices}, options.GyroAddress)
 		gyroEnabled = true
-		fmt.Println("Enable Gyro",gyro)
+		fmt.Println("Gyro Enabled",gyro)
 	}
 
 	return &EPuckHandle{
@@ -133,8 +138,11 @@ func (e *EPuckHandle) UpdateGyro() bool {
 		fmt.Println(err)
 		return false
 	}
+	// for i := 0; i < 6; i++ {
+	// 	fmt.Println("[",i,"]",biu.ToBinaryString(gyroData[i]))
+	// }
 	for i := 0; i < 3; i++ {
-		e.Gyro.Values[i] = int16(uint16(gyroData[i*2+1])+uint16(gyroData[2*i])*256) - e.Gyro.Offsets[i]
+		e.Gyro.Values[i] = int16(uint16(gyroData[i*2+1])+uint16(gyroData[2*i])*256) - e.Gyro.offsets[i]
 	}
 	return true
 }
@@ -143,18 +151,21 @@ func (e *EPuckHandle) UpdateGyro() bool {
 func (e *EPuckHandle) CalibrateGyro() bool {
 	var gyroSum [3]int
 	var gyroData = make([]byte, 6)
-	for i := 0; i < NUM_SAMPLES_CALIBRATION; i++ {
+	time.Sleep(500 * time.Millisecond)
+	for i := 0; i < NumSamplesCalibrationCONST; i++ {
 		if err := e.GyroDevice.ReadReg(0x43,gyroData); err != nil {
 			fmt.Println(err)
 			return false
 		}
 		for i := 0; i < 3; i++ {
-			gyroSum[i] = gyroSum[i] + int(uint16(gyroData[i*2+1])+uint16(gyroData[2*i])*256)
+			gyroSum[i] = gyroSum[i] + int(int16(uint16(gyroData[i*2+1])+uint16(gyroData[2*i])*256))
 		}
 	}
 	for i := 0; i < 3; i++ {
-		e.Gyro.Offsets[i] = int16(gyroSum[i] / NUM_SAMPLES_CALIBRATION)
+		e.Gyro.offsets[i] = int16(gyroSum[i] / NumSamplesCalibrationCONST)
 	}
+	e.Gyro.calibrated = true
+	fmt.Println("Gyro Calibrated!")
 	return true
 
 }
@@ -212,15 +223,37 @@ func (e *EPuckHandle) FreeSpin(speed int) bool {
 }
 
 //Spin epuck spin around
-func (e *EPuckHandle) Spin(degree int) bool {
-	speed := 128
+func (e *EPuckHandle) Spin(degree float32) bool {
+	speed := 512
 	sign := 1
+	var count float32
 	if degree < 0 {
 		sign = -1
 	}
-	e.FreeSpin(sign * speed)
-	t := time.Duration(sign * degree * RATIO)
-	time.Sleep(t * time.Millisecond)
-	return e.Stop()
-	
+	if !e.Gyro.calibrated {
+		e.CalibrateGyro()
+	}
+	finalPosition := degree / GyroDPSCoefficientCONST * 2
+	fmt.Println("final position:",finalPosition)
+	t := time.NewTicker(500 * time.Millisecond)
+	defer t.Stop()
+	for {
+		e.FreeSpin(sign * speed)
+		<- t.C
+		if e.UpdateGyro() {
+			count += float32(e.Gyro.Values[2])
+		}
+		// 角度时间系数是250.0/32768.0 dps
+		deviation := (finalPosition - count)/finalPosition
+		fmt.Println("count and dev",count,"and",deviation)
+		switch {
+		case deviation < 0:
+			sign = - sign
+			speed /= 2
+		case deviation<0.1 || speed == 0:
+			return e.Stop()
+		case deviation < 0.5:
+			speed /= 2
+		}
+	}
 }
