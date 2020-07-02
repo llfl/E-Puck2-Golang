@@ -133,6 +133,10 @@ func (e *EPuckHandle) UpdateSensors() bool {
 
 //UpdateGyro update the handle sensor structure
 func (e *EPuckHandle) UpdateGyro() bool {
+	if !e.GyroEnabled {
+		fmt.Println("GYRO NOT ENABLED: enable Gyro first!")
+		return false
+	}
 	var gyroData = make([]byte, 6)
 	if err := e.GyroDevice.ReadReg(0x43,gyroData); err != nil {
 		fmt.Println(err)
@@ -149,6 +153,10 @@ func (e *EPuckHandle) UpdateGyro() bool {
 
 //CalibrateGyro CalibrateGyro
 func (e *EPuckHandle) CalibrateGyro() bool {
+	if !e.GyroEnabled {
+		fmt.Println("GYRO NOT ENABLED: enable Gyro first!")
+		return false
+	}
 	var gyroSum [3]int
 	var gyroData = make([]byte, 6)
 	time.Sleep(500 * time.Millisecond)
@@ -224,6 +232,10 @@ func (e *EPuckHandle) FreeSpin(speed int) bool {
 
 //Spin epuck spin around
 func (e *EPuckHandle) Spin(degree float32) bool {
+	if !e.GyroEnabled {
+		fmt.Println("GYRO NOT ENABLED: use FreeSpin() instead or enable Gyro!")
+		return false
+	}
 	speed := 512
 	sign := 1
 	var count float32
